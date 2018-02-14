@@ -16,7 +16,7 @@
           <ul>
             <li v-for="item in discList" class="item">
               <div class="icon">
-                <img v-lazy="item.url" alt="" width="60" height="60">
+                <img v-lazy="item.imgurl" alt="" width="60" height="60">
               </div>
               <div class="text">
                 <h2 class="name" v-html="item.creator.name"></h2>
@@ -95,8 +95,6 @@
       .slider-wrapper
         position: relative
         width: 100%
-        height: 0
-        padding-top: 40%
         overflow: hidden
         .slider-content
           position: absolute
