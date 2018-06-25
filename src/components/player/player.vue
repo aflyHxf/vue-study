@@ -91,30 +91,33 @@
             <i :class="miniIcon" @click.stop="togglePlaying" class="icon-mini"></i>
           </progress-circle>
         </div>
-        <div class="control">
+        <div class="control" @click.stop="showPlaylist">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <playlist ref="playlist"></playlist>
     <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error" @timeupdate="updataTime"
            @ended="end"></audio>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
-  import {mapGetters, mapMutations} from 'vuex'
+  import {mapGetters, mapMutations, mapActions} from 'vuex'
   import animations from 'create-keyframe-animation'
   import {prefixStyle} from 'common/js/dom'
   import ProgressBar from 'base/progress-bar/progress-bar'
   import ProgressCircle from 'base/progress-circle/progress-circle'
   import {playMode} from 'common/js/config'
-  import {shuffle} from 'common/js/util'
   import Lyric from 'lyric-parser'
   import Scroll from 'base/scroll/scroll'
+  import Playlist from 'components/playlist/playlist'
+  import {playerMixin} from 'common/js/mixin'
 
   const transform = prefixStyle('transform')
   const transitionDuratio = prefixStyle('transitionDuratio')
   export default {
+    mixins: [playerMixin],
     data() {
       return {
         songReady: false,
@@ -136,9 +139,6 @@
       disableCls() {
         return this.songReady ? '' : 'disable'
       },
-      iconMode() {
-        return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
-      },
       cdCls() {
         return this.playing ? 'play' : 'play pause'
       },
@@ -150,12 +150,8 @@
       },
       ...mapGetters([
         'fullScreen',
-        'playlist',
-        'currentSong',
         'playing',
         'currentIndex',
-        'mode',
-        'sequenceList'
       ])
     },
     methods: {
@@ -167,24 +163,6 @@
         const minute = interval / 60 | 0
         const second = this._pad(interval % 60)
         return `${minute}:${second}`
-      },
-      changeMode() {
-        const mode = (this.mode + 1) % 3
-        this.setMode(mode)
-        let list = null
-        if (this.mode === playMode.random) {
-          list = shuffle(this.sequenceList)
-        } else {
-          list = this.sequenceList
-        }
-        this.resetCurrentIndex(list)
-        this.setPlayList(list)
-      },
-      resetCurrentIndex(list) {
-        let index = list.findIndex((item) => {
-          return item.id === this.currentSong.id
-        })
-        this.setCurrentIndex(index)
       },
       middleTouchStart(e) {
         this.touch.initiated = true
@@ -235,6 +213,9 @@
         this.$refs.lyricList.$el.style[transitionDuratio] = `${time}ms`
         this.$refs.middleL.style.opacity = opacity
         this.$refs.middleL.style[transitionDuratio] = `${time}ms`
+      },
+      showPlaylist() {
+        this.$refs.playlist.show()
       },
       _pad(num, n = 2) {
         let len = num.toString().length
@@ -307,6 +288,8 @@
       },
       ready() {
         this.songReady = true
+        this.savePlayHistory(this.currentSong)
+
       },
       error() {
         this.songReady = true
@@ -399,16 +382,17 @@
       },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
-        setPlayingState: 'SET_PLAYING_STATE',
-        setCurrentIndex: 'SET_CURRENT_INDEX',
-        setMode: 'SET_PLAY_MODE',
-        setPlayList: 'SET_PLAYLIST'
-      })
+      }),
+      ...mapActions([
+        'saveSearchHistory',
+        'savePlayHistory'
+      ])
     },
     mounted() {
     },
     watch: {
       currentSong(newSong, oldSong) {
+        if (!newSong.id) return
         if (newSong.id === oldSong.id) {
           return false
         }
@@ -430,7 +414,8 @@
     components: {
       ProgressBar,
       ProgressCircle,
-      Scroll
+      Scroll,
+      Playlist
     }
   }
 </script>

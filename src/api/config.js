@@ -7,7 +7,12 @@ export const commonParams = {
 }
 
 export const options = {
-  param: 'jsonpCallback'
+  param: 'jsonpCallback',
+}
+
+export const options_songs = {
+  param: 'jsonpCallback',
+  prefix: 'playlistinfoCallback'
 }
 
 export const headerUrl = 'https://c.y.qq.com'

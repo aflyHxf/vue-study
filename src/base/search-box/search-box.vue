@@ -1,8 +1,8 @@
 <template>
   <div class="search-box">
     <i class="icon-search"></i>
-    <input ref="query" v-model="query" class="box" :placeholder="placeholder"/>
-    <i @click="clear" v-show="query" class="icon-dismiss"></i>
+    <input ref="query" class="box" v-model="query" :placeholder="placeholder"/>
+    <i v-show="query" class="icon-dismiss" @click="clear"></i>
   </div>
 </template>
 

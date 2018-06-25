@@ -6,10 +6,10 @@
 
 <script type="text/ecmascript-6">
   import MusicList from 'components/music-list/music-list'
-  import { getSongList } from 'api/recommend'
-  import { ERR_OK } from 'api/config'
-  import { mapGetters } from 'vuex'
-  import { createSong, isValidMusic } from 'common/js/song'
+  import {getSongList} from 'api/recommend'
+  import {mapGetters} from 'vuex'
+  import {ERR_OK} from "api/config";
+  import {createSong, isValidMusic, processSongsUrl} from 'common/js/song'
 
   export default {
     computed: {
@@ -51,7 +51,7 @@
           }
         })
         return ret
-      }
+      },
     },
     components: {
       MusicList

@@ -1,4 +1,4 @@
-import {getLyric} from 'api/song'
+import {getLyric, getVKey, getSongsUrl} from 'api/song'
 import {ERR_OK} from "../../api/config";
 import {Base64} from 'js-base64'
 
@@ -11,6 +11,7 @@ export default class Song {
     this.album = album
     this.duration = duration
     this.image = image
+    this.filename = `C400${this.mid}.m4a`
     this.url = url
   }
 
@@ -21,8 +22,8 @@ export default class Song {
     return new Promise((resolve, reject) => {
       getLyric(this.mid).then((res) => {
         if (res.retcode === ERR_OK) {
-          this.Lyric = Base64.decode(res.lyric)
-          resolve(this.Lyric)
+          this.lyric = Base64.decode(res.lyric)
+          resolve(this.lyric)
         } else {
           reject('no lyric')
         }
@@ -41,13 +42,11 @@ export function createSong(musicData) {
     album: musicData.albumname,
     duration: musicData.interval,
     image: `https://y.gtimg.cn/music/photo_new/T002R300x300M000${musicData.albummid}.jpg?max_age=2592000`,
-    url: "http://dl.stream.qqmusic.qq.com/C400001Qu4I30eVFYb.m4a?vkey=E1C70B5D404A958B78C8B70EB828C0589F672E35D5C1EB785208EDC2C2D421453B8C7DA935BC4DC22AB5E58FF0118508327E7C644CF859EB&guid=4118384561&uin=0&fromtag=66"
-    // http://dl.stream.qqmusic.qq.com/%s?vkey=%s&guid=%s&uin=0&fromtag=66
-
+    url: 'http://dl.stream.qqmusic.qq.com/C400003vUjJp3QwFcd.m4a?vkey=2050EC375B1FAF400E78FAB3983F7480C43C99C7E379B05A07938FC81C8B8DFBD9FDC9C2C3A18B582F4A78A45A66B7D31BA4BDD110F4CF9C&guid=7755978409&uin=0&fromtag=66'
   })
 }
 
-function filterSinger(singer) {
+export function filterSinger(singer) {
   let ret = []
   if (!singer) {
     return ''
@@ -56,4 +55,24 @@ function filterSinger(singer) {
     ret.push(s.name)
   })
   return ret.join('/')
+}
+
+export function isValidMusic(musicData) {
+  return musicData.songid && musicData.albummid && (!musicData.pay || musicData.pay.payalbumprice === 0)
+}
+
+export function processSongsUrl(songs) {
+  if (!songs.length) {
+    return Promise.resolve(songs)
+  }
+  return getSongsUrl(songs).then((res) => {
+    if (res.code === ERR_OK) {
+      let midUrlInfo = res.url_mid.data.midurlinfo
+      midUrlInfo.forEach((info, index) => {
+        let song = songs[index]
+        song.url = `http://dl.stream.qqmusic.qq.com/${info.purl}`
+      })
+    }
+    return songs
+  })
 }
